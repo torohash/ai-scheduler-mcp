@@ -43,11 +43,11 @@ interface CalendarEvent {
   location?: string;     // 場所
   start: {               // 開始日時
     dateTime: string;    // RFC 3339形式
-    timeZone?: string;   // タイムゾーン
+    timeZone: string;    // タイムゾーン（例: "Asia/Tokyo"）
   };
   end: {                 // 終了日時
     dateTime: string;    // RFC 3339形式
-    timeZone?: string;   // タイムゾーン
+    timeZone: string;    // タイムゾーン（例: "Asia/Tokyo"）
   };
   recurrence?: string[]; // 繰り返しルール
   attendees?: Array<{    // 参加者
@@ -210,12 +210,14 @@ GET /api/events
   - `calendarId` (オプション): 特定のカレンダーのみ取得
   - `maxResults` (オプション): 返す結果の最大数
   - `pageToken` (オプション): ページネーション用のトークン
+  - `timeZone` (オプション): 結果を表示するタイムゾーン（デフォルトはユーザーのタイムゾーン）
 - **レスポンス**: イベントのリスト
 
 ```typescript
 interface EventsResponse {
   items: CalendarEvent[];
   nextPageToken?: string;
+  timeZone: string; // レスポンスで使用されているタイムゾーン
 }
 ```
 
@@ -229,6 +231,7 @@ GET /api/events/{eventId}
 - **パラメータ**:
   - `eventId`: イベントのID
   - `calendarId` (オプション): カレンダーのID
+  - `timeZone` (オプション): 結果を表示するタイムゾーン（デフォルトはユーザーのタイムゾーン）
 - **レスポンス**: イベントの詳細情報
 
 ```typescript
@@ -250,12 +253,12 @@ interface CreateEventRequest {
   description?: string;
   location?: string;
   start: {
-    dateTime: string;
-    timeZone?: string;
+    dateTime: string;    // RFC 3339形式
+    timeZone: string;    // タイムゾーン（例: "Asia/Tokyo"）
   };
   end: {
-    dateTime: string;
-    timeZone?: string;
+    dateTime: string;    // RFC 3339形式
+    timeZone: string;    // タイムゾーン（例: "Asia/Tokyo"）
   };
   recurrence?: string[];
   attendees?: Array<{
@@ -298,12 +301,12 @@ interface UpdateEventRequest {
   description?: string;
   location?: string;
   start?: {
-    dateTime: string;
-    timeZone?: string;
+    dateTime: string;    // RFC 3339形式
+    timeZone: string;    // タイムゾーン（例: "Asia/Tokyo"）
   };
   end?: {
-    dateTime: string;
-    timeZone?: string;
+    dateTime: string;    // RFC 3339形式
+    timeZone: string;    // タイムゾーン（例: "Asia/Tokyo"）
   };
   recurrence?: string[];
   attendees?: Array<{
@@ -461,12 +464,14 @@ GET /api/tasks/{taskId}/events
   - `taskId`: タスクのID
   - `maxResults` (オプション): 返す結果の最大数
   - `pageToken` (オプション): ページネーション用のトークン
+  - `timeZone` (オプション): 結果を表示するタイムゾーン（デフォルトはユーザーのタイムゾーン）
 - **レスポンス**: イベントのリスト
 
 ```typescript
 interface TaskEventsResponse {
   items: CalendarEvent[];
   nextPageToken?: string;
+  timeZone: string; // レスポンスで使用されているタイムゾーン
 }
 ```
 
@@ -533,6 +538,65 @@ interface UnlinkTaskEventResponse {
 }
 ```
 
+### 5. タイムゾーン関連エンドポイント
+
+#### ユーザーのタイムゾーン設定の取得
+
+```
+GET /api/settings/timezone
+```
+
+- **説明**: 現在のユーザーのタイムゾーン設定を取得
+- **レスポンス**: タイムゾーン情報
+
+```typescript
+interface TimezoneResponse {
+  timezone: string;      // タイムゾーン（例: "Asia/Tokyo"）
+  displayName: string;   // 表示名（例: "日本標準時"）
+  utcOffset: number;     // UTCからのオフセット（分単位）
+}
+```
+
+#### ユーザーのタイムゾーン設定の更新
+
+```
+PUT /api/settings/timezone
+```
+
+- **説明**: ユーザーのタイムゾーン設定を更新
+- **リクエストボディ**:
+
+```typescript
+interface UpdateTimezoneRequest {
+  timezone: string;      // タイムゾーン（例: "Asia/Tokyo"）
+}
+```
+
+- **レスポンス**: 更新されたタイムゾーン情報
+
+```typescript
+// TimezoneResponse型のオブジェクト
+```
+
+#### 利用可能なタイムゾーンの一覧取得
+
+```
+GET /api/settings/timezones
+```
+
+- **説明**: 利用可能なすべてのタイムゾーンの一覧を取得
+- **レスポンス**: タイムゾーンのリスト
+
+```typescript
+interface TimezonesResponse {
+  items: Array<{
+    timezone: string;      // タイムゾーン（例: "Asia/Tokyo"）
+    displayName: string;   // 表示名（例: "日本標準時"）
+    utcOffset: number;     // UTCからのオフセット（分単位）
+  }>;
+}
+```
+
 ## 実装上の考慮事項
 
 1. **認証**: OAuth2.0を使用してGoogle APIへのアクセスを認証します。
@@ -545,8 +609,17 @@ interface UnlinkTaskEventResponse {
 
 5. **同期**: Google TasksとGoogle Calendarの変更をリアルタイムで反映するための同期メカニズムを実装します。
 
+6. **タイムゾーン処理**:
+   - すべての日時データはRFC 3339形式（例: "2025-04-04T10:00:00+09:00"）で扱います。
+   - イベント作成・更新時には必ずタイムゾーンを明示的に指定します。
+   - タイムゾーンが指定されていない場合は、ユーザーの設定したデフォルトタイムゾーンを使用します。
+   - 日本のユーザーの場合は、デフォルトで "Asia/Tokyo" を使用します。
+   - クライアント側とサーバー側の両方でタイムゾーン変換を適切に処理します。
+
 ## まとめ
 
 この設計では、Google Tasks APIとGoogle Calendar APIを活用しながら、タスクとカレンダーイベントを柔軟に紐付けることができるAPIエンドポイントを提供します。多対多の関係を実現することで、一つのタスクを複数の時間に分割して設定したり、複数のタスクを一つの時間帯に割り当てたりすることが可能になります。
+
+タイムゾーンの適切な処理により、国際的なユーザーや異なるタイムゾーンにまたがるチームでも正確な時間管理が可能になります。
 
 ユーザーは既存のGoogle Tasksの機能をそのまま利用しながら、タスクとイベントの紐付けを自由に行うことができます。これにより、より効率的なタスク管理と時間管理が可能になります。
