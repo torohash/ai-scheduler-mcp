@@ -3,7 +3,6 @@ import { OAuth2Client } from "google-auth-library";
 import { registerBasicEventTools } from "./basic.js";
 import { registerEventQueryTools } from "./query.js";
 import { registerEventBulkTools } from "./bulk.js";
-import { registerEventSmartTools } from "./smart.js";
 
 /**
  * イベント関連のすべてのツールを登録する
@@ -22,7 +21,4 @@ export function registerEventTools(
 
   // バルク操作関連ツールを登録
   registerEventBulkTools(server, authClient);
-
-  // インテリジェント機能関連ツールを登録
-  registerEventSmartTools(server, authClient);
 }

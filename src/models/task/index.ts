@@ -8,4 +8,3 @@ export * from "./request.js";
 export * from "./response.js";
 
 // 拡張モデルの型定義のエクスポート
-export * from "./enhanced.js";
