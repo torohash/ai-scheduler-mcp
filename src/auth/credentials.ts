@@ -14,6 +14,16 @@ export async function loadSavedCredentialsIfExist(): Promise<OAuth2Client | null
       return null;
     }
     const content = fs.readFileSync(TOKEN_PATH, "utf8");
+
+    // ファイルの内容が空かどうかを確認
+    if (content.trim() === "") {
+      console.info(
+        `Token file at ${TOKEN_PATH} is empty. Proceeding with new authentication.`,
+      );
+      return null; // 再認証をトリガーするためにnullを返す
+    }
+
+    // 内容が空でない場合のみパースに進む
     const credentials = JSON.parse(content);
     // 'google.auth.fromJSON' が OAuth2Client を返すことを期待
     const client = google.auth.fromJSON(credentials);
