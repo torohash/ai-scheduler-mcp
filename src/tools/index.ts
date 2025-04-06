@@ -3,6 +3,7 @@ import { OAuth2Client } from "google-auth-library";
 import { registerTaskTools } from "./tasks/index.js";
 import { registerEventTools } from "./events/index.js";
 import { registerLinkTools } from "./links/index.js";
+import { registerDateTools } from "./date.js";
 
 /**
  * Registers all available tools with the MCP server.
@@ -24,4 +25,8 @@ export function registerAllTools(
   console.log("Registering Link tools...");
   registerLinkTools(server, authClient); // Pass authClient here as well
   console.log("Link tools registered.");
+
+  console.log("Registering Date tools...");
+  registerDateTools(server); // 日付ツールは認証が不要
+  console.log("Date tools registered.");
 }
