@@ -2,10 +2,10 @@ import express, { Request, Response } from "express";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { config } from "dotenv";
-import { initializeAuth } from "./auth";
-import { registerTaskTools } from "./tools/tasks";
-import { registerEventTools } from "./tools/events";
-import { registerLinkTools } from "./tools/links";
+import { initializeAuth } from "./auth.js";
+import { registerTaskTools } from "./tools/tasks.js";
+import { registerEventTools } from "./tools/events.js";
+import { registerLinkTools } from "./tools/links.js";
 
 // 環境変数の読み込み
 config();
