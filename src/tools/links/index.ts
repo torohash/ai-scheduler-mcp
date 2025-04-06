@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { OAuth2Client } from "google-auth-library";
 import { registerBasicLinkTools } from "./basic.js";
+import { registerBulkLinkTools } from "./bulk.js";
 import { registerQueryLinkTools } from "./query.js";
 // import { registerSyncLinkTools } from "./sync.js"; // Future: Import sync tools
 
@@ -15,6 +16,7 @@ export function registerLinkTools(
 ): void {
   // Register different categories of link tools
   registerBasicLinkTools(server, authClient); // Basic CRUD operations
+  registerBulkLinkTools(server, authClient); // Bulk operations
   registerQueryLinkTools(server, authClient); // Query and listing operations
   // registerSyncLinkTools(server, authClient); // Future: Sync operations
 }
