@@ -1,152 +1,287 @@
-# AI Scheduler MCP サーバー
+# ai-scheduler-mcp
 
-Google Tasks API と Google Calendar API を統合したタスク管理システムの MCP サーバーです。このサーバーは、SSE（Server-Sent Events）を利用して LLM アプリケーションとの通信を行います。
+Google Tasks と Calendar API を統合するための MCP（Model Context Protocol）サーバーです。このサーバーを使用することで、MCPクライアント（Roo Codeなど）から Google Tasks と Calendar の機能を利用することができます。
 
-## プロジェクト構造
+## 前提条件
 
-```
-ai-scheduler-mcp/
-├── src/
-│   ├── index.ts           # メインエントリーポイント
-│   ├── auth.ts            # 認証関連の処理
-│   ├── tools/             # ツール定義
-│   │   ├── tasks.ts       # タスク関連のツール定義
-│   │   ├── events.ts      # イベント関連のツール定義
-│   │   └── links.ts       # 紐付け関連のツール定義
-│   └── models/            # モデル定義
-│       ├── task.ts        # タスクモデル
-│       ├── event.ts       # イベントモデル
-│       └── link.ts        # 紐付けモデル
-├── package.json           # パッケージ設定
-├── tsconfig.json          # TypeScript設定
-├── .gitignore             # Git除外設定
-├── credentials.json       # Google API認証情報（gitignore対象）
-└── token.json             # 認証トークン（gitignore対象）
-```
+- Dockerがインストールされていること
+- docker-composeがインストールされていること（オプション）
+- mcp-networkという名前のDockerネットワークが作成されていること（同一ネットワーク内で接続する場合）
 
-## セットアップ手順
-
-### 1. 必要なパッケージのインストール
+mcp-networkが存在しない場合は、以下のコマンドで作成できます：
 
 ```bash
-# プロジェクトディレクトリに移動
-cd ai-scheduler-mcp
-
-# 必要なパッケージをインストール
-npm install express @modelcontextprotocol/sdk googleapis google-auth-library zod
-
-# 開発用パッケージをインストール
-npm install --save-dev typescript ts-node ts-node-dev @types/node @types/express
+docker network create mcp-network
 ```
 
-### 2. Google API 認証情報の設定
+## セットアップと起動方法
 
-1. [Google Cloud Console](https://console.cloud.google.com/)にアクセスし、プロジェクトを作成します。
-2. Google Tasks API と Google Calendar API を有効化します。
-3. OAuth 2.0 クライアント ID を作成し、認証情報をダウンロードします。
-4. ダウンロードした JSON ファイルを`credentials.json`という名前でプロジェクトのルートディレクトリに配置します。
+### Dockerを使用する方法
 
-### 3. 環境変数の設定
-
-このプロジェクトでは、環境変数を使用して設定を行うことができます。開発環境では`.env`ファイルを使用し、本番環境では Docker の環境変数機能を利用します。
-
-1. プロジェクトルートディレクトリにある`.env.example`ファイルを`.env`にコピーします：
+1. リポジトリをクローンまたはダウンロードします
+2. プロジェクトのルートディレクトリで以下のコマンドを実行します：
 
 ```bash
-cp .env.example .env
+# イメージをビルド
+docker build -t ai-scheduler-mcp .
+
+# コンテナを起動（デフォルトポート: 3003, ネットワーク: mcp-network）
+docker run -d --name ai-scheduler-mcp-server --network mcp-network -p 3003:3003 --restart unless-stopped -e PORT=3003 ai-scheduler-mcp
 ```
 
-2. 必要に応じて`.env`ファイルの内容を編集します：
-
-```
-# サーバー設定
-PORT=3003
-
-# Google API認証設定
-TOKEN_PATH=./token.json
-CREDENTIALS_PATH=./credentials.json
-```
-
-3. Docker 環境での実行時は、以下のように環境変数を設定します：
+これにより、デフォルトの3003ポートでサーバーが起動します。起動が完了すると、ログで確認できます：
 
 ```bash
-docker run -e PORT=3003 -e TOKEN_PATH=/app/data/token.json -e CREDENTIALS_PATH=/app/data/credentials.json your-image-name
+docker logs ai-scheduler-mcp-server
 ```
 
-または、docker-compose.yml ファイルを使用する場合：
+### シェルスクリプトを使用する方法
 
-```yaml
-services:
-  app:
-    image: your-image-name
-    environment:
-      - PORT=3003
-      - TOKEN_PATH=/app/data/token.json
-      - CREDENTIALS_PATH=/app/data/credentials.json
-    volumes:
-      - ./data:/app/data
-```
+このプロジェクトには、サーバーのビルド・起動・停止・ログ表示・削除を簡単に行うためのシェルスクリプト (`scripts/ai-scheduler-mcp.sh`) が含まれています。
 
-### 4. サーバーの起動
+1. スクリプトに実行権限を付与します：
 
 ```bash
-# 開発モードで起動
-npm run dev
-
-# または、ビルドして起動
-npm run build
-npm start
+chmod +x scripts/ai-scheduler-mcp.sh
 ```
 
-初回起動時には、コンソールに表示される URL にアクセスして Google 認証を行い、表示された認証コードをコンソールに入力する必要があります。
+2. プロジェクトのルートディレクトリから以下のコマンドを使用して操作します：
+
+```bash
+# イメージをビルド
+./scripts/ai-scheduler-mcp.sh build
+
+# コンテナを起動（デフォルト設定: ポート3003, ネットワーク mcp-network, 再起動ポリシー unless-stopped）
+./scripts/ai-scheduler-mcp.sh start
+
+# カスタムポートと再起動ポリシーを指定して起動
+./scripts/ai-scheduler-mcp.sh start -P 8080 -r always
+
+# コンテナのログを表示
+./scripts/ai-scheduler-mcp.sh logs
+
+# コンテナを停止・削除
+./scripts/ai-scheduler-mcp.sh stop
+
+# コンテナを停止・削除し、イメージも削除 (確認あり)
+./scripts/ai-scheduler-mcp.sh delete
+
+# ヘルプを表示
+./scripts/ai-scheduler-mcp.sh help
+```
+
+### カスタムポートの設定
+
+デフォルトポート（3003）以外のポートでサーバーを起動したい場合は、`-P` オプションを使用します：
+
+```bash
+# 直接 docker run を使用する場合 (ポート 8080)
+docker run -d --name ai-scheduler-mcp-server --network mcp-network -p 8080:8080 -e PORT=8080 --restart unless-stopped ai-scheduler-mcp
+
+# シェルスクリプトを使用する場合 (ポート 8080)
+./scripts/ai-scheduler-mcp.sh start -P 8080
+```
 
 ## 使用方法
 
-### MCP クライアントの設定
+### 同じmcp-networkに参加しているコンテナからの接続
 
-Claude Desktop などのクライアントで以下のように設定します：
+同じmcp-networkに参加している他のコンテナからは、以下のURLでサーバーに接続できます（`PORT` はサーバーの起動ポート）：
+
+```
+http://ai-scheduler-mcp-server:${PORT}/sse
+```
+
+デフォルトポートを使用している場合：
+
+```
+http://ai-scheduler-mcp-server:3003/sse
+```
+
+### ホスト側からの接続
+
+ホストマシンからは、以下のURLでサーバーに接続できます（`PORT` はサーバーの起動ポート）：
+
+```
+http://localhost:${PORT}/sse
+```
+
+デフォルトポートを使用している場合：
+
+```
+http://localhost:3003/sse
+```
+
+### Roo Codeからの接続
+
+MCP Servers -> MCP設定を編集 -> 以下を記入します（`PORT` はサーバーの起動ポート）：
 
 ```json
 {
   "mcpServers": {
-    "ai-scheduler": {
-      "command": "node",
-      "args": ["dist/index.js"],
-      "cwd": "/path/to/ai-scheduler-mcp"
+    "ai-scheduler-mcp-server": {
+      "url": "http://localhost:${PORT}/sse"
     }
   }
 }
 ```
 
-### 利用可能なツール
+デフォルトポートを使用している場合：
 
-#### タスク関連
+```json
+{
+  "mcpServers": {
+    "ai-scheduler-mcp-server": {
+      "url": "http://localhost:3003/sse"
+    }
+  }
+}
+```
 
-- `listTasks`: タスク一覧を取得
-- `getTask`: 特定のタスクを取得
-- `createTask`: 新しいタスクを作成
-- `updateTask`: タスクを更新
-- `deleteTask`: タスクを削除
+#### コンテナ環境でのRoo Codeからの接続
 
-#### イベント関連
+同じDocker Network内で実行されているRoo Codeコンテナからは、以下のようにMCP設定を行います：
 
-- `listEvents`: イベント一覧を取得
-- `getEvent`: 特定のイベントを取得
-- `createEvent`: 新しいイベントを作成
-- `updateEvent`: イベントを更新
-- `deleteEvent`: イベントを削除
+```json
+{
+  "mcpServers": {
+    "ai-scheduler-mcp-server": {
+      "url": "http://ai-scheduler-mcp-server:3003/sse"
+    }
+  }
+}
+```
 
-#### 紐付け関連
+**docker-compose.yml設定例**：
 
-- `listTaskEventLinks`: 紐付け一覧を取得
-- `getTaskEventLink`: 特定の紐付けを取得
-- `createTaskEventLink`: 新しい紐付けを作成
-- `updateTaskEventLink`: 紐付けを更新
-- `deleteTaskEventLink`: 紐付けを削除
-- `getTaskEvents`: タスクに紐付けられたイベントを取得
-- `getEventTasks`: イベントに紐付けられたタスクを取得
+```yaml
+services:
+  # Roo Code コンテナ
+  roo-code:
+    # 略
+
+  # ai-scheduler-mcp コンテナ
+  ai-scheduler-mcp:
+    build: .
+    container_name: ai-scheduler-mcp-server
+    restart: unless-stopped
+    ports:
+      - "3003:3003" # ホスト側のポートも合わせる場合は 3003:3003
+    environment:
+      - PORT=3003
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    external: true
+```
+
+この設定により、Roo Codeコンテナからai-scheduler-mcpコンテナに接続し、Google Tasks と Calendar の機能を利用できます。コンテナ名（`ai-scheduler-mcp-server`）をホスト名として使用することで、Docker Network内での名前解決が可能になります。
+
+#### 開発コンテナ環境でのRoo Codeからの接続（ホスト経由）
+
+開発コンテナ内でRoo Codeを実行し、`mcp-network` に参加せずにホストマシン経由でこのMCPサーバーに接続する場合、以下のようにMCP設定を行います。
+
+**Docker Desktop (Mac/Windows) の場合:**
+
+```json
+{
+  "mcpServers": {
+    "ai-scheduler-mcp-server": {
+      "url": "http://host.docker.internal:3003/sse"
+    }
+  }
+}
+```
+
+**Linux の場合 (例: ブリッジゲートウェイIPを使用):**
+
+```json
+{
+  "mcpServers": {
+    "ai-scheduler-mcp-server": {
+      "url": "http://172.17.0.1:3003/sse"
+    }
+  }
+}
+```
+
+**注意:**
+
+- `3003` は、MCPサーバーがホスト上で公開しているポート番号（デフォルト: 3003）に置き換えてください。
+- Linuxの場合は、`172.17.0.1` の部分を実際のホストIPアドレスまたはDockerブリッジネットワークのゲートウェイIPアドレスに置き換えてください。
+
+### 開発コンテナからの接続（ホスト経由）
+
+`mcp-network` に参加していない開発コンテナからこのMCPサーバーにアクセスする必要がある場合（例：既存プロジェクトとの兼ね合いでネットワーク変更が難しい場合）、ホストマシン経由で接続できます。
+
+この方法では、開発コンテナから見て「ホストマシン」にあたるIPアドレスまたは特別なDNS名と、MCPサーバーがホスト上で公開しているポート（デフォルトは3003）を指定します。
+
+**接続先URL:**
+
+```
+http://<host_ip_or_dns_name>:3003/sse
+```
+
+**`<host_ip_or_dns_name>` の特定方法:**
+
+- **Docker Desktop (Mac/Windows):** 特別なDNS名 `host.docker.internal` を使用できます。
+
+  - 例: `http://host.docker.internal:3003/sse`
+
+- **Linux:**
+  - **ホストのIPアドレス:** ホストマシンのネットワークインターフェースに割り当てられているIPアドレスを使用します（例：`ifconfig` や `ip addr` コマンドで確認）。
+    - 例: `http://192.168.1.10:3003/sse`（IPアドレスは環境によって異なります）
+  - **Dockerブリッジネットワークのゲートウェイ:** Dockerのデフォルトブリッジネットワーク (`bridge`) のゲートウェイIPアドレス（通常 `172.17.0.1`）を使用できます。`docker network inspect bridge` コマンドで確認できます。
+    - 例: `http://172.17.0.1:3003/sse`
+
+**注意点:**
+
+- ホストのファイアウォール設定によっては、開発コンテナからホストのポートへのアクセスが許可されていない場合があります。
+- 使用するポート番号は、`docker ps` コマンドや起動時の設定で確認してください。
+
+## 便利な使用方法 (コマンドの簡略化)
+
+毎回 `./scripts/ai-scheduler-mcp.sh` と入力するのは面倒な場合があります。以下のいずれかの方法で、より短いコマンドでスクリプトを実行できます。
+
+### 方法1: PATHを通す
+
+`scripts` ディレクトリを環境変数 `PATH` に追加します。シェルの設定ファイル (`~/.bashrc`, `~/.zshrc` など) に以下を追加します。
+
+```bash
+export PATH="/path/to/your/project/ai-scheduler-mcp/scripts:$PATH" # <- 実際のパスに変更
+```
+
+設定ファイルを再読み込み (`source ~/.bashrc` など) すると、どこからでも以下のように実行できます。
+
+```bash
+ai-scheduler-mcp.sh build
+ai-scheduler-mcp.sh start
+# ...など
+```
+
+### 方法2: エイリアスを作成する
+
+シェルの設定ファイル (`~/.bashrc`, `~/.zshrc` など) にエイリアスを定義します。
+
+```bash
+alias ai_scheduler_mcp="/path/to/your/project/ai-scheduler-mcp/scripts/ai-scheduler-mcp.sh" # <- 実際のパスに変更
+```
+
+設定ファイルを再読み込み (`source ~/.bashrc` など) すると、どこからでも以下のように実行できます。
+
+```bash
+ai_scheduler_mcp build
+ai_scheduler_mcp start
+ai_scheduler_mcp start -P 8080 -r always
+# ...など
+```
+
+これにより、プロジェクトディレクトリ外からでも簡単にコンテナを管理できます。
 
 ## 注意事項
 
-- 認証情報（credentials.json, token.json）は絶対に Git リポジトリにコミットしないでください。
-- 実際の運用では、紐付け情報の永続化のためにデータベースを使用することを推奨します。
+- このサーバーはSSE（Server-Sent Events）を使用してMCPクライアントと通信します
+- Google APIを使用するには、適切な認証情報（クライアントIDやシークレットなど）が必要です
+- 環境変数は `.env` ファイルまたはコンテナ起動時に指定することができます
