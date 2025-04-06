@@ -29,6 +29,28 @@ _ensure_network() {
   return 0
 }
 
+# 認証ファイルが存在するか確認する関数
+_check_auth_files() {
+  local credentials_path="${PROJECT_ROOT}/credentials.json"
+  local token_path="${PROJECT_ROOT}/token.json"
+  local missing_files=0
+
+  if [ ! -f "$credentials_path" ]; then
+    echo "エラー: 認証情報ファイルが見つかりません: ${credentials_path}" >&2
+    echo "Google Cloud Consoleからダウンロードし、プロジェクトルートに配置してください。" >&2
+    missing_files=1
+  fi
+
+  # startコマンドの場合のみtoken.jsonの存在を確認
+  if [ "$1" == "start" ] && [ ! -f "$token_path" ]; then
+    echo "エラー: トークンファイルが見つかりません: ${token_path}" >&2
+    echo "初回認証が必要です。'${script_name} start-auth' コマンドを実行してください。" >&2
+    missing_files=1
+  fi
+
+  return $missing_files
+}
+
 # ヘルプメッセージを表示する関数
 _show_help() {
   local script_name
@@ -37,11 +59,16 @@ _show_help() {
   echo ""
   echo "コマンド:"
   echo "  build          Dockerイメージをビルドします。"
-  echo "  start          Dockerコンテナを起動します。"
+  echo "  start-auth     初回認証を行い、token.jsonを生成します (インタラクティブ)。"
+  echo "  start          Dockerコンテナを起動します (認証済みである必要があります)。"
   echo "  stop           Dockerコンテナを停止および削除します。"
   echo "  logs           Dockerコンテナのログを表示します。"
   echo "  delete         Dockerコンテナを停止・削除し、イメージも削除します（確認あり）。"
   echo "  help, -h, --help このヘルプメッセージを表示します。"
+  echo ""
+  echo ""
+  echo "start-auth コマンドのオプション:"
+  echo "  -P, --port PORT    公開するポート番号を指定します (デフォルト: ${DEFAULT_PORT})。"
   echo ""
   echo "start コマンドのオプション:"
   echo "  -P, --port PORT    公開するポート番号を指定します (デフォルト: ${DEFAULT_PORT})。"
@@ -50,6 +77,7 @@ _show_help() {
   echo ""
   echo "例:"
   echo "  ${script_name} build"
+  echo "  ${script_name} start-auth"
   echo "  ${script_name} start"
   echo "  ${script_name} start -P 8080 -r always"
   echo "  ${script_name} stop"
@@ -105,6 +133,12 @@ _start_container() {
     return 1
   fi
 
+  # 認証ファイルの存在確認 (startコマンドのみtoken.jsonも確認)
+  local script_name=$(basename "$0") # _check_auth_files内で使用するためここで定義
+  if ! _check_auth_files "start"; then
+      return 1
+  fi
+
   echo "Dockerコンテナ '${CONTAINER_NAME}' をポート ${port} で起動します (ネットワーク: ${NETWORK_NAME}, 再起動ポリシー: ${restart_policy})..."
 
   # 既存の同名コンテナがあれば停止・削除
@@ -117,12 +151,14 @@ _start_container() {
       docker rm "${CONTAINER_NAME}" > /dev/null
   fi
 
-  # コンテナを起動
+  # コンテナを起動 (認証ファイルをマウント)
   docker run -d \
     --name "${CONTAINER_NAME}" \
     --network "${NETWORK_NAME}" \
     -p "${port}:${port}" \
     --restart "${restart_policy}" \
+    -v "${PROJECT_ROOT}/credentials.json:/app/credentials.json:ro" \
+    -v "${PROJECT_ROOT}/token.json:/app/token.json:ro" \
     -e PORT="${port}" \
     "${IMAGE_NAME}"
 
@@ -131,6 +167,85 @@ _start_container() {
     echo "コンテナ '${CONTAINER_NAME}' が起動しました。"
   else
     echo "エラー: コンテナの起動に失敗しました。" >&2
+  fi
+  return $exit_code
+}
+
+# 初回認証用のコンテナを起動する関数
+_start_auth_container() {
+  local port="${DEFAULT_PORT}"
+  local auth_container_name="${CONTAINER_NAME}-auth" # 認証用の一時コンテナ名
+
+  # オプション引数をパース (ポートのみ)
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case $key in
+      -P|--port)
+        port="$2"
+        shift # 引数名をスキップ
+        shift # 値をスキップ
+        ;;
+      *)    # 不明なオプション
+        echo "不明なオプション: $1" >&2
+        _show_help >&2
+        return 1
+        ;;
+    esac
+  done
+
+  # ネットワークの存在確認と作成
+  if ! _ensure_network; then
+    return 1
+  fi
+
+  # credentials.jsonの存在確認
+  if ! _check_auth_files "start-auth"; then
+      return 1
+  fi
+
+  # token.jsonがなければ作成 (マウントエラーを防ぐため)
+  local token_path="${PROJECT_ROOT}/token.json"
+  if [ ! -f "$token_path" ]; then
+      echo "初回認証のため、空の ${token_path} を作成します。"
+      touch "$token_path"
+      if [ $? -ne 0 ]; then
+          echo "エラー: ${token_path} の作成に失敗しました。書き込み権限を確認してください。" >&2
+          return 1
+      fi
+  fi
+
+  echo "初回認証用コンテナ '${auth_container_name}' をポート ${port} で起動します (インタラクティブモード)..."
+  echo "認証URLが表示されたら、ブラウザでアクセスし、認証コードをコンソールに入力してください。"
+
+  # 既存の同名認証コンテナがあれば削除
+  if [ "$(docker ps -aq -f name=^/${auth_container_name}$)" ]; then
+      echo "既存の認証用コンテナ '${auth_container_name}' を削除します..."
+      docker rm -f "${auth_container_name}" > /dev/null
+  fi
+
+  # コンテナをインタラクティブモードで起動
+  docker run -it --rm \
+    --name "${auth_container_name}" \
+    --network "${NETWORK_NAME}" \
+    -p "${port}:${port}" \
+    -v "${PROJECT_ROOT}/credentials.json:/app/credentials.json:ro" \
+    -v "${PROJECT_ROOT}/token.json:/app/token.json" \
+    -e PORT="${port}" \
+    "${IMAGE_NAME}"
+
+  local exit_code=$?
+  if [ $exit_code -eq 0 ]; then
+    # 認証成功後、token.jsonが更新されているか確認
+    if grep -q "refresh_token" "$token_path"; then
+        echo "初回認証が成功し、${token_path} が更新されました。"
+        echo "通常の起動は '${script_name} start' コマンドを使用してください。"
+    else
+        echo "警告: 認証プロセスは完了しましたが、${token_path} にrefresh_tokenが見つかりません。" >&2
+        echo "Google Cloud Consoleの設定や認証時の承認内容を確認してください。" >&2
+        # exit_code=1 # 警告として扱うため、終了コードは変更しない場合もある
+    fi
+  else
+    echo "エラー: 初回認証コンテナの実行に失敗しました。" >&2
   fi
   return $exit_code
 }
@@ -229,6 +344,9 @@ shift # 第一引数（コマンド）を消費し、残りを各関数に渡す
 case $COMMAND in
   build)
     _build_image
+    ;;
+  start-auth)
+    _start_auth_container "$@"
     ;;
   start)
     _start_container "$@" # 残りの引数をstart関数に渡す

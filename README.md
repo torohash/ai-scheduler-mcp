@@ -14,6 +14,96 @@ mcp-networkが存在しない場合は、以下のコマンドで作成できま
 docker network create mcp-network
 ```
 
+## 認証
+
+このMCPサーバーはGoogle TasksとCalendar APIを利用するため、Google Cloud Platformでの認証設定と、初回起動時の認証プロセスが必要です。
+
+### 1. Google Cloud Platformでの認証情報設定
+
+1.  **Google Cloud Console** にアクセスし、プロジェクトを作成または選択します。
+2.  **APIとサービス > 有効なAPIとサービス** で、以下のAPIが有効になっていることを確認します（有効でない場合は有効化します）：
+    - Google Tasks API
+    - Google Calendar API
+3.  **APIとサービス > 認証情報** に移動します。
+4.  **認証情報を作成 > OAuthクライアントID** を選択します。
+5.  アプリケーションの種類として「**デスクトップアプリ**」または「**ウェブ アプリケーション**」を選択します。
+    - **デスクトップアプリ**: 名前を入力して作成します。
+    - **ウェブ アプリケーション**:
+      - 名前を入力します。
+      - 「承認済みのリダイレクト URI」に `http://localhost` と `http://localhost:3000` (またはサーバーを実行するポート) を追加します。
+      - 作成をクリックします。
+6.  作成されたOAuthクライアントIDの認証情報（JSON形式）をダウンロードし、ファイル名を `credentials.json` として、このプロジェクトのルートディレクトリ (`ai-scheduler-mcp/`) に保存します。
+
+**重要:** `credentials.json` ファイルには機密情報が含まれています。**絶対にGitリポジトリにコミットしないでください。** このファイルは `.gitignore` に含まれているため、通常はGitの追跡対象外となります。
+
+### 2. 初回認証 (token.json の生成)
+
+`credentials.json` を配置した後、MCPサーバーを初めて起動する際に、Googleアカウントでの認証プロセスを実行する必要があります。これにより、APIアクセスに必要なトークン情報が `token.json` ファイルに保存されます。
+
+1.  **インタラクティブモードでコンテナを起動:**
+    通常の起動コマンド (`docker run -d ...` や `./scripts/ai-scheduler-mcp.sh start`) はバックグラウンドで実行されるため、コンソールでの認証コード入力ができません。初回認証時は、以下のコマンドを使用してコンテナを**インタラクティブモード**で起動します。
+
+    ```bash
+    # プロジェクトルートディレクトリ (ai-scheduler-mcp/) で実行
+    # 事前に docker build -t ai-scheduler-mcp . でイメージをビルドしておく必要があります
+    docker run -it --rm --name ai-scheduler-mcp-auth \
+      --network mcp-network \
+      -p 3003:3003 \
+      -v "$(pwd)/token.json:/app/token.json" \
+      -v "$(pwd)/credentials.json:/app/credentials.json:ro" \
+      -e PORT=3003 \
+      ai-scheduler-mcp
+    ```
+
+    - `-it`: コンテナと対話するためのフラグです。
+    - `--rm`: 認証完了後にコンテナを自動的に削除します。
+    - `-v "$(pwd)/token.json:/app/token.json"`: ホストの `token.json` をコンテナの `/app/token.json` にマウントします。認証成功時にここにトークンが書き込まれます。（初回は存在しなくてもOK）
+    - `-v "$(pwd)/credentials.json:/app/credentials.json:ro"`: ホストの `credentials.json` をコンテナに読み取り専用でマウントします。
+    - `-e PORT=3003`: ポート番号を指定します（必要に応じて変更）。
+    - `ai-scheduler-mcp`: ビルド済みのイメージ名です。
+
+2.  **認証URLへのアクセス:**
+    コンテナが起動すると、コンソールに以下のようなメッセージと認証URLが表示されます。
+
+    ```
+    Authorize this app by visiting this url: https://accounts.google.com/o/oauth2/v2/auth?....
+    ```
+
+    表示されたURLをコピーし、Webブラウザで開きます。
+
+3.  **Googleアカウントでの承認:**
+    ブラウザでGoogleアカウントへのログインと、要求された権限（TasksとCalendarへのアクセス）の承認を行います。
+
+4.  **認証コードの取得と入力:**
+    承認後、ブラウザに認証コードが表示されるか、リダイレクト先のURLに含まれます (`?code=認証コード&...` の形式)。この認証コードをコピーします。
+    コンテナを実行しているターミナルに戻り、以下のように認証コードの入力を求められるので、コピーしたコードを貼り付けてEnterキーを押します。
+
+    ```
+    Enter the authorization code from that page here: ここに認証コードを貼り付け
+    ```
+
+5.  **`token.json` の生成:**
+    認証が成功すると、コンテナの `/app/token.json` にトークン情報が書き込まれます。ホスト側にマウントしているため、プロジェクトルートディレクトリ (`ai-scheduler-mcp/`) に `token.json` ファイルが生成または更新されます。コンテナは自動的に終了・削除されます (`--rm` オプションのため)。
+
+**重要:** 生成された `token.json` ファイルにも機密情報が含まれています。**絶対にGitリポジトリにコミットしないでください。** このファイルも `.gitignore` に含まれています。
+
+### 3. 通常の起動
+
+初回認証が完了し `token.json` が生成された後は、通常の起動コマンドを使用してサーバーを実行できます。
+
+```bash
+# シェルスクリプトを使用する場合 (スクリプト内で認証ファイルのマウントが必要になる場合があります)
+# ./scripts/ai-scheduler-mcp.sh start
+
+# docker run を直接使用する場合 (認証ファイルをマウント)
+docker run -d --name ai-scheduler-mcp-server --network mcp-network -p 3003:3003 \
+  -v "$(pwd)/token.json:/app/token.json:ro" \
+  -v "$(pwd)/credentials.json:/app/credentials.json:ro" \
+  --restart unless-stopped -e PORT=3003 ai-scheduler-mcp
+```
+
+_注意: 通常起動時も `-v` で `token.json` と `credentials.json` をコンテナにマウントする必要があります。読み取り専用 (`:ro`) でマウントすることを推奨します。シェルスクリプトを使用する場合、スクリプト自体がこれらのボリュームマウントをサポートするように変更が必要になる可能性があります。_
+
 ## セットアップと起動方法
 
 ### Dockerを使用する方法
