@@ -48,7 +48,7 @@ function getAuthorizationCode(): Promise<string> {
         // URLデコードを行う
         const decodedCode = decodeURIComponent(code.trim());
         resolve(decodedCode);
-      }
+      },
     );
   });
 }
@@ -72,10 +72,10 @@ const { tokens } = await oAuth2Client.getToken({
 ```typescript
 console.log("Authorize this app by visiting this url:", authUrl);
 console.log(
-  "After authorization, you will be redirected to a page with an error message."
+  "After authorization, you will be redirected to a page with an error message.",
 );
 console.log(
-  "Copy the authorization code from the URL (after '?code=' and before '&')"
+  "Copy the authorization code from the URL (after '?code=' and before '&')",
 );
 ```
 

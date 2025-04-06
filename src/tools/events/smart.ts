@@ -11,7 +11,7 @@ import { minutesBetween } from "../../utils/date.js";
  */
 export function registerEventSmartTools(
   server: McpServer,
-  authClient: OAuth2Client
+  authClient: OAuth2Client,
 ): void {
   // Google Calendar APIクライアント初期化
   const calendarClient = google.calendar({ version: "v3", auth: authClient });
@@ -41,12 +41,12 @@ export function registerEventSmartTools(
           timeMin = new Date(
             now.getFullYear(),
             now.getMonth(),
-            now.getDate()
+            now.getDate(),
           ).toISOString();
           timeMax = new Date(
             now.getFullYear(),
             now.getMonth(),
-            now.getDate() + 1
+            now.getDate() + 1,
           ).toISOString();
         } else if (
           keywords.includes("今週") ||
@@ -58,12 +58,12 @@ export function registerEventSmartTools(
           timeMin = new Date(
             now.getFullYear(),
             now.getMonth(),
-            now.getDate() - daysSinceMonday
+            now.getDate() - daysSinceMonday,
           ).toISOString();
           timeMax = new Date(
             now.getFullYear(),
             now.getMonth(),
-            now.getDate() - daysSinceMonday + 7
+            now.getDate() - daysSinceMonday + 7,
           ).toISOString();
         } else if (
           keywords.includes("今月") ||
@@ -73,12 +73,12 @@ export function registerEventSmartTools(
           timeMin = new Date(
             now.getFullYear(),
             now.getMonth(),
-            1
+            1,
           ).toISOString();
           timeMax = new Date(
             now.getFullYear(),
             now.getMonth() + 1,
-            1
+            1,
           ).toISOString();
         }
 
@@ -100,7 +100,7 @@ export function registerEventSmartTools(
                   "今月",
                   "this_month",
                   "this-month",
-                ].includes(k)
+                ].includes(k),
             )
             .join(" "),
         });
@@ -128,13 +128,13 @@ export function registerEventSmartTools(
                           "今月",
                           "this_month",
                           "this-month",
-                        ].includes(k)
+                        ].includes(k),
                     ),
                   },
                   results: response.data.items,
                 },
                 null,
-                2
+                2,
               ),
             },
           ],
@@ -152,7 +152,7 @@ export function registerEventSmartTools(
           isError: true,
         };
       }
-    }
+    },
   );
 
   // 空き時間検出ツール
@@ -207,14 +207,14 @@ export function registerEventSmartTools(
 
         for (const event of allEvents) {
           const eventStart = new Date(
-            event.start?.dateTime || event.start?.date || ""
+            event.start?.dateTime || event.start?.date || "",
           );
 
           // 現在時刻からイベント開始時刻までの間に空き時間があるか確認
           if (eventStart > currentTime) {
             const duration = minutesBetween(
               currentTime.toISOString(),
-              eventStart.toISOString()
+              eventStart.toISOString(),
             );
 
             if (duration >= minDuration) {
@@ -232,7 +232,7 @@ export function registerEventSmartTools(
 
           // 現在時刻をイベント終了時刻に更新
           const eventEnd = new Date(
-            event.end?.dateTime || event.end?.date || ""
+            event.end?.dateTime || event.end?.date || "",
           );
           if (eventEnd > currentTime) {
             currentTime = eventEnd;
@@ -243,7 +243,7 @@ export function registerEventSmartTools(
         if (currentTime < endTime && freeSlots.length < maxResults) {
           const duration = minutesBetween(
             currentTime.toISOString(),
-            endTime.toISOString()
+            endTime.toISOString(),
           );
 
           if (duration >= minDuration) {
@@ -270,7 +270,7 @@ export function registerEventSmartTools(
                   },
                 },
                 null,
-                2
+                2,
               ),
             },
           ],
@@ -288,6 +288,6 @@ export function registerEventSmartTools(
           isError: true,
         };
       }
-    }
+    },
   );
 }

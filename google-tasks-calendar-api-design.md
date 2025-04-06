@@ -12,24 +12,25 @@
 
 ```typescript
 interface Task {
-  id: string;            // タスクの一意識別子
-  title: string;         // タスクのタイトル
-  notes?: string;        // タスクの詳細説明
-  status: 'needsAction' | 'completed'; // タスクのステータス
-  due?: string;          // 期限日時 (RFC 3339形式)
-  completed?: string;    // 完了日時 (RFC 3339形式)
-  deleted?: boolean;     // 削除されたかどうか
-  hidden?: boolean;      // 非表示かどうか
-  links?: Array<{        // 関連リンク
+  id: string; // タスクの一意識別子
+  title: string; // タスクのタイトル
+  notes?: string; // タスクの詳細説明
+  status: "needsAction" | "completed"; // タスクのステータス
+  due?: string; // 期限日時 (RFC 3339形式)
+  completed?: string; // 完了日時 (RFC 3339形式)
+  deleted?: boolean; // 削除されたかどうか
+  hidden?: boolean; // 非表示かどうか
+  links?: Array<{
+    // 関連リンク
     type: string;
     description: string;
     link: string;
   }>;
-  position?: string;     // タスクリスト内での位置
-  parent?: string;       // 親タスクのID（階層構造の場合）
-  etag?: string;         // エンティティタグ
-  updated?: string;      // 更新日時 (RFC 3339形式)
-  selfLink?: string;     // 自己参照リンク
+  position?: string; // タスクリスト内での位置
+  parent?: string; // 親タスクのID（階層構造の場合）
+  etag?: string; // エンティティタグ
+  updated?: string; // 更新日時 (RFC 3339形式)
+  selfLink?: string; // 自己参照リンク
 }
 ```
 
@@ -37,36 +38,40 @@ interface Task {
 
 ```typescript
 interface CalendarEvent {
-  id: string;            // イベントの一意識別子
-  summary: string;       // イベントのタイトル
-  description?: string;  // イベントの詳細説明
-  location?: string;     // 場所
-  start: {               // 開始日時
-    dateTime: string;    // RFC 3339形式
-    timeZone: string;    // タイムゾーン（例: "Asia/Tokyo"）
+  id: string; // イベントの一意識別子
+  summary: string; // イベントのタイトル
+  description?: string; // イベントの詳細説明
+  location?: string; // 場所
+  start: {
+    // 開始日時
+    dateTime: string; // RFC 3339形式
+    timeZone: string; // タイムゾーン（例: "Asia/Tokyo"）
   };
-  end: {                 // 終了日時
-    dateTime: string;    // RFC 3339形式
-    timeZone: string;    // タイムゾーン（例: "Asia/Tokyo"）
+  end: {
+    // 終了日時
+    dateTime: string; // RFC 3339形式
+    timeZone: string; // タイムゾーン（例: "Asia/Tokyo"）
   };
   recurrence?: string[]; // 繰り返しルール
-  attendees?: Array<{    // 参加者
+  attendees?: Array<{
+    // 参加者
     email: string;
     displayName?: string;
     responseStatus?: string;
   }>;
-  reminders?: {          // リマインダー設定
+  reminders?: {
+    // リマインダー設定
     useDefault: boolean;
     overrides?: Array<{
       method: string;
       minutes: number;
     }>;
   };
-  status?: string;       // イベントのステータス
-  colorId?: string;      // 色分け用ID
-  etag?: string;         // エンティティタグ
-  created?: string;      // 作成日時 (RFC 3339形式)
-  updated?: string;      // 更新日時 (RFC 3339形式)
+  status?: string; // イベントのステータス
+  colorId?: string; // 色分け用ID
+  etag?: string; // エンティティタグ
+  created?: string; // 作成日時 (RFC 3339形式)
+  updated?: string; // 更新日時 (RFC 3339形式)
 }
 ```
 
@@ -74,13 +79,13 @@ interface CalendarEvent {
 
 ```typescript
 interface TaskEventLink {
-  id: string;            // リンクの一意識別子
-  taskId: string;        // タスクのID
-  eventId: string;       // イベントのID
-  userId: string;        // ユーザーのID
-  createdAt: string;     // 作成日時 (RFC 3339形式)
-  updatedAt: string;     // 更新日時 (RFC 3339形式)
-  notes?: string;        // リンクに関する追加メモ（オプション）
+  id: string; // リンクの一意識別子
+  taskId: string; // タスクのID
+  eventId: string; // イベントのID
+  userId: string; // ユーザーのID
+  createdAt: string; // 作成日時 (RFC 3339形式)
+  updatedAt: string; // 更新日時 (RFC 3339形式)
+  notes?: string; // リンクに関する追加メモ（オプション）
 }
 ```
 
@@ -140,7 +145,7 @@ interface CreateTaskRequest {
   title: string;
   notes?: string;
   due?: string;
-  status?: 'needsAction' | 'completed';
+  status?: "needsAction" | "completed";
   parent?: string;
 }
 ```
@@ -167,7 +172,7 @@ interface UpdateTaskRequest {
   title?: string;
   notes?: string;
   due?: string;
-  status?: 'needsAction' | 'completed';
+  status?: "needsAction" | "completed";
   completed?: string;
 }
 ```
@@ -253,12 +258,12 @@ interface CreateEventRequest {
   description?: string;
   location?: string;
   start: {
-    dateTime: string;    // RFC 3339形式
-    timeZone: string;    // タイムゾーン（例: "Asia/Tokyo"）
+    dateTime: string; // RFC 3339形式
+    timeZone: string; // タイムゾーン（例: "Asia/Tokyo"）
   };
   end: {
-    dateTime: string;    // RFC 3339形式
-    timeZone: string;    // タイムゾーン（例: "Asia/Tokyo"）
+    dateTime: string; // RFC 3339形式
+    timeZone: string; // タイムゾーン（例: "Asia/Tokyo"）
   };
   recurrence?: string[];
   attendees?: Array<{
@@ -301,12 +306,12 @@ interface UpdateEventRequest {
   description?: string;
   location?: string;
   start?: {
-    dateTime: string;    // RFC 3339形式
-    timeZone: string;    // タイムゾーン（例: "Asia/Tokyo"）
+    dateTime: string; // RFC 3339形式
+    timeZone: string; // タイムゾーン（例: "Asia/Tokyo"）
   };
   end?: {
-    dateTime: string;    // RFC 3339形式
-    timeZone: string;    // タイムゾーン（例: "Asia/Tokyo"）
+    dateTime: string; // RFC 3339形式
+    timeZone: string; // タイムゾーン（例: "Asia/Tokyo"）
   };
   recurrence?: string[];
   attendees?: Array<{
@@ -551,9 +556,9 @@ GET /api/settings/timezone
 
 ```typescript
 interface TimezoneResponse {
-  timezone: string;      // タイムゾーン（例: "Asia/Tokyo"）
-  displayName: string;   // 表示名（例: "日本標準時"）
-  utcOffset: number;     // UTCからのオフセット（分単位）
+  timezone: string; // タイムゾーン（例: "Asia/Tokyo"）
+  displayName: string; // 表示名（例: "日本標準時"）
+  utcOffset: number; // UTCからのオフセット（分単位）
 }
 ```
 
@@ -568,7 +573,7 @@ PUT /api/settings/timezone
 
 ```typescript
 interface UpdateTimezoneRequest {
-  timezone: string;      // タイムゾーン（例: "Asia/Tokyo"）
+  timezone: string; // タイムゾーン（例: "Asia/Tokyo"）
 }
 ```
 
@@ -590,9 +595,9 @@ GET /api/settings/timezones
 ```typescript
 interface TimezonesResponse {
   items: Array<{
-    timezone: string;      // タイムゾーン（例: "Asia/Tokyo"）
-    displayName: string;   // 表示名（例: "日本標準時"）
-    utcOffset: number;     // UTCからのオフセット（分単位）
+    timezone: string; // タイムゾーン（例: "Asia/Tokyo"）
+    displayName: string; // 表示名（例: "日本標準時"）
+    utcOffset: number; // UTCからのオフセット（分単位）
   }>;
 }
 ```

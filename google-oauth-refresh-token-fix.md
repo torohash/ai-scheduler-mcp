@@ -34,7 +34,7 @@ Error loading saved credentials: Error: The incoming JSON object does not contai
        access_token: tokens.access_token ? "取得済み" : "未取得",
        refresh_token: tokens.refresh_token ? "取得済み" : "未取得",
        expiry_date: tokens.expiry_date,
-     })
+     }),
    );
    ```
 4. エラーハンドリングを改善して、具体的なエラー内容と対処方法を表示

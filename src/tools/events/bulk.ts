@@ -1,8 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { OAuth2Client } from "google-auth-library";
-import { google } from "googleapis";
-import { BulkEventUpdates } from "../../models/event/index.js";
+import { google, calendar_v3 } from "googleapis"; // calendar_v3 をインポート
 import { shiftTime } from "../../utils/date.js";
 
 /**
@@ -12,7 +11,7 @@ import { shiftTime } from "../../utils/date.js";
  */
 export function registerEventBulkTools(
   server: McpServer,
-  authClient: OAuth2Client
+  authClient: OAuth2Client,
 ): void {
   // Google Calendar APIクライアント初期化
   const calendarClient = google.calendar({ version: "v3", auth: authClient });
@@ -46,7 +45,7 @@ export function registerEventBulkTools(
             });
 
             // 更新内容を準備
-            const updateData: any = {};
+            const updateData: calendar_v3.Schema$Event = {}; // 具体的な型を使用
 
             // 時間シフトの処理
             if (updates.timeShift && updates.timeShift !== 0) {
@@ -54,7 +53,7 @@ export function registerEventBulkTools(
                 updateData.start = {
                   dateTime: shiftTime(
                     currentEvent.data.start.dateTime,
-                    updates.timeShift
+                    updates.timeShift,
                   ),
                   timeZone: currentEvent.data.start.timeZone,
                 };
@@ -64,7 +63,7 @@ export function registerEventBulkTools(
                 updateData.end = {
                   dateTime: shiftTime(
                     currentEvent.data.end.dateTime,
-                    updates.timeShift
+                    updates.timeShift,
                   ),
                   timeZone: currentEvent.data.end.timeZone,
                 };
@@ -119,7 +118,7 @@ export function registerEventBulkTools(
                   },
                 },
                 null,
-                2
+                2,
               ),
             },
           ],
@@ -137,7 +136,7 @@ export function registerEventBulkTools(
           isError: true,
         };
       }
-    }
+    },
   );
 
   // イベント更新時に関連タスクも連動して更新するツール
@@ -198,7 +197,7 @@ export function registerEventBulkTools(
                   linkedTasks: linkedTasksResult,
                 },
                 null,
-                2
+                2,
               ),
             },
           ],
@@ -216,6 +215,6 @@ export function registerEventBulkTools(
           isError: true,
         };
       }
-    }
+    },
   );
 }

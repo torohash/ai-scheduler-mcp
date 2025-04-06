@@ -69,7 +69,7 @@ server.tool(
   },
   async ({ timeRange, calendarId, includeLinkedTasks }) => {
     // 実装...
-  }
+  },
 );
 ```
 
@@ -93,7 +93,7 @@ server.tool(
   },
   async ({ tags, matchAll, includeCompleted, includeLinkedEvents }) => {
     // 実装...
-  }
+  },
 );
 ```
 
@@ -110,7 +110,7 @@ server.tool(
   },
   async ({ query, includeEvents, includeTasks }) => {
     // 実装...
-  }
+  },
 );
 ```
 
@@ -135,7 +135,7 @@ server.tool(
   },
   async ({ eventIds, updates, calendarId }) => {
     // 実装...
-  }
+  },
 );
 ```
 
@@ -172,7 +172,7 @@ server.tool(
   },
   async ({ eventId, updates, taskUpdates }) => {
     // 実装...
-  }
+  },
 );
 ```
 
@@ -198,7 +198,7 @@ server.tool(
   },
   async ({ taskId, preferredTimeRange, maxSuggestions }) => {
     // 実装...
-  }
+  },
 );
 ```
 
@@ -219,7 +219,7 @@ server.tool(
             dayOfWeek: z.number(), // 0-6 (日曜-土曜)
             startTime: z.string(), // "HH:MM" 形式
             endTime: z.string(), // "HH:MM" 形式
-          })
+          }),
         )
         .optional(),
     }),
@@ -233,7 +233,7 @@ server.tool(
   },
   async ({ taskIds, timeConstraints, priorities }) => {
     // 実装...
-  }
+  },
 );
 ```
 

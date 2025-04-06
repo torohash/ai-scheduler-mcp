@@ -1,3 +1,5 @@
+import type { CalendarEvent } from "../event/types.js"; // typeインポートで循環参照を回避
+import type { Task } from "../task/types.js"; // typeインポートで循環参照を回避
 import { TaskEventLink } from "./types.js";
 
 /**
@@ -20,7 +22,7 @@ export interface LinksResponse {
  * タスクに紐付けられたイベント一覧レスポンスの型定義
  */
 export interface TaskEventsResponse {
-  items: any[]; // CalendarEventの配列だが、循環参照を避けるためanyを使用
+  items: CalendarEvent[];
   nextPageToken?: string;
   timeZone: string; // レスポンスで使用されているタイムゾーン
 }
@@ -29,7 +31,7 @@ export interface TaskEventsResponse {
  * イベントに紐付けられたタスク一覧レスポンスの型定義
  */
 export interface EventTasksResponse {
-  items: any[]; // Taskの配列だが、循環参照を避けるためanyを使用
+  items: Task[];
   nextPageToken?: string;
 }
 

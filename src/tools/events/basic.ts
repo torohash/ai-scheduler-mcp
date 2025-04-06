@@ -2,10 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { OAuth2Client } from "google-auth-library";
 import { google } from "googleapis";
-import {
-  CalendarEvent,
-  DeleteEventResponse,
-} from "../../models/event/index.js";
+import { DeleteEventResponse } from "../../models/event/index.js";
 
 /**
  * イベント関連の基本的なCRUD操作ツールを登録する
@@ -15,7 +12,7 @@ import {
  */
 export function registerBasicEventTools(
   server: McpServer,
-  authClient: OAuth2Client
+  authClient: OAuth2Client,
 ): void {
   // Google Calendar APIクライアント初期化
   const calendarClient = google.calendar({ version: "v3", auth: authClient });
@@ -57,7 +54,7 @@ export function registerBasicEventTools(
           isError: true,
         };
       }
-    }
+    },
   );
 
   // イベント作成ツール
@@ -81,7 +78,7 @@ export function registerBasicEventTools(
           z.object({
             email: z.string(),
             displayName: z.string().optional(),
-          })
+          }),
         )
         .optional(),
       reminders: z
@@ -92,7 +89,7 @@ export function registerBasicEventTools(
               z.object({
                 method: z.string(),
                 minutes: z.number(),
-              })
+              }),
             )
             .optional(),
         })
@@ -149,7 +146,7 @@ export function registerBasicEventTools(
           isError: true,
         };
       }
-    }
+    },
   );
 
   // イベント更新ツール
@@ -179,7 +176,7 @@ export function registerBasicEventTools(
           z.object({
             email: z.string(),
             displayName: z.string().optional(),
-          })
+          }),
         )
         .optional(),
       reminders: z
@@ -190,7 +187,7 @@ export function registerBasicEventTools(
               z.object({
                 method: z.string(),
                 minutes: z.number(),
-              })
+              }),
             )
             .optional(),
         })
@@ -248,7 +245,7 @@ export function registerBasicEventTools(
           isError: true,
         };
       }
-    }
+    },
   );
 
   // イベント削除ツール
@@ -291,6 +288,6 @@ export function registerBasicEventTools(
           isError: true,
         };
       }
-    }
+    },
   );
 }

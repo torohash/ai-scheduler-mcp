@@ -12,7 +12,7 @@ import { registerEventSmartTools } from "./smart.js";
  */
 export function registerEventTools(
   server: McpServer,
-  authClient: OAuth2Client
+  authClient: OAuth2Client,
 ): void {
   // 基本的なCRUD操作ツールを登録
   registerBasicEventTools(server, authClient);

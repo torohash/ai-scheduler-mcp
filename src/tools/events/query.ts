@@ -2,12 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { OAuth2Client } from "google-auth-library";
 import { google } from "googleapis";
-import {
-  CalendarEvent,
-  EventsResponse,
-  TimeRange,
-  TimeRangePreset,
-} from "../../models/event/index.js";
+import { CalendarEvent, EventsResponse } from "../../models/event/index.js";
 import { getTimeRangeFromPreset } from "../../utils/date.js";
 
 /**
@@ -17,7 +12,7 @@ import { getTimeRangeFromPreset } from "../../utils/date.js";
  */
 export function registerEventQueryTools(
   server: McpServer,
-  authClient: OAuth2Client
+  authClient: OAuth2Client,
 ): void {
   // Google Calendar APIクライアント初期化
   const calendarClient = google.calendar({ version: "v3", auth: authClient });
@@ -78,7 +73,7 @@ export function registerEventQueryTools(
           isError: true,
         };
       }
-    }
+    },
   );
 
   // 時間範囲プリセットを使用したイベント一覧取得ツール
@@ -109,7 +104,7 @@ export function registerEventQueryTools(
     async ({
       timeRange,
       calendarId,
-      includeLinkedTasks,
+      // includeLinkedTasks, // 未使用のためコメントアウト
       maxResults,
       pageToken,
       timeZone,
@@ -144,7 +139,7 @@ export function registerEventQueryTools(
           timeZone: response.data.timeZone || "UTC",
         };
 
-        // TODO: includeLinkedTasksがtrueの場合、関連するタスクも取得する処理を追加
+        // TODO: 関連するタスクも取得する処理を追加 (includeLinkedTasks パラメータは削除)
 
         return {
           content: [
@@ -167,7 +162,7 @@ export function registerEventQueryTools(
           isError: true,
         };
       }
-    }
+    },
   );
 
   // タグでイベントを検索するツール
@@ -204,23 +199,27 @@ export function registerEventQueryTools(
           timeZone,
         });
 
-        // タグでフィルタリング（拡張フィールドを想定）
-        const filteredEvents = (response.data.items as any[]).filter(
-          (event) => {
-            if (!event.tags) return false;
-
-            if (matchAll) {
-              // すべてのタグが一致するかチェック
-              return tags.every((tag) => event.tags.includes(tag));
-            } else {
-              // いずれかのタグが一致するかチェック
-              return tags.some((tag) => event.tags.includes(tag));
-            }
+        // タグでフィルタリング（拡張フィールド 'tags' を想定）
+        const events = (response.data.items || []) as CalendarEvent[]; // itemsが存在しない場合は空配列を使用し、CalendarEvent[]にキャスト
+        const filteredEvents = events.filter((event) => {
+          // 'tags' プロパティが存在し、配列であることを確認
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const eventTags = (event as any).tags; // 拡張プロパティ'tags'にアクセスするためanyキャスト
+          if (!Array.isArray(eventTags)) {
+            return false;
           }
-        );
+
+          if (matchAll) {
+            // すべてのタグが一致するかチェック
+            return tags.every((tag) => eventTags.includes(tag));
+          } else {
+            // いずれかのタグが一致するかチェック
+            return tags.some((tag) => eventTags.includes(tag));
+          }
+        });
 
         const eventsResponse: EventsResponse = {
-          items: filteredEvents as CalendarEvent[],
+          items: filteredEvents, // filteredEventsは既にCalendarEvent[]型
           nextPageToken: response.data.nextPageToken || undefined,
           timeZone: response.data.timeZone || "UTC",
         };
@@ -246,6 +245,6 @@ export function registerEventQueryTools(
           isError: true,
         };
       }
-    }
+    },
   );
 }

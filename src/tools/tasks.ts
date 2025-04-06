@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { google } from "googleapis";
+import { google, tasks_v1 } from "googleapis"; // tasks_v1 をインポート
 import { OAuth2Client } from "google-auth-library";
 import { Task, TasksResponse, DeleteTaskResponse } from "../models/task.js";
 
@@ -11,7 +11,7 @@ import { Task, TasksResponse, DeleteTaskResponse } from "../models/task.js";
  */
 export function registerTaskTools(
   server: McpServer,
-  authClient: OAuth2Client
+  authClient: OAuth2Client,
 ): void {
   // Google Tasks APIクライアント初期化
   const tasksClient = google.tasks({ version: "v1", auth: authClient });
@@ -29,7 +29,8 @@ export function registerTaskTools(
     async ({ status, dueMin, dueMax, maxResults, pageToken }) => {
       try {
         // Google APIの型定義に合わせてパラメータを調整
-        const params: any = {
+        const params: tasks_v1.Params$Resource$Tasks$List = {
+          // 具体的な型を使用
           tasklist: "@default",
           maxResults,
           pageToken,
@@ -68,7 +69,7 @@ export function registerTaskTools(
           isError: true,
         };
       }
-    }
+    },
   );
 
   // タスク取得ツール
@@ -105,7 +106,7 @@ export function registerTaskTools(
           isError: true,
         };
       }
-    }
+    },
   );
 
   // タスク作成ツール
@@ -152,7 +153,7 @@ export function registerTaskTools(
           isError: true,
         };
       }
-    }
+    },
   );
 
   // タスク更新ツール
@@ -201,7 +202,7 @@ export function registerTaskTools(
           isError: true,
         };
       }
-    }
+    },
   );
 
   // タスク削除ツール
@@ -243,6 +244,6 @@ export function registerTaskTools(
           isError: true,
         };
       }
-    }
+    },
   );
 }

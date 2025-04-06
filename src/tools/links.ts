@@ -15,7 +15,7 @@ import {
  */
 export function registerLinkTools(
   server: McpServer,
-  authClient: OAuth2Client
+  authClient: OAuth2Client,
 ): void {
   // Google APIクライアント初期化
   const tasksClient = google.tasks({ version: "v1", auth: authClient });
@@ -39,13 +39,13 @@ export function registerLinkTools(
 
         if (taskId) {
           filteredLinks = filteredLinks.filter(
-            (link) => link.taskId === taskId
+            (link) => link.taskId === taskId,
           );
         }
 
         if (eventId) {
           filteredLinks = filteredLinks.filter(
-            (link) => link.eventId === eventId
+            (link) => link.eventId === eventId,
           );
         }
 
@@ -85,7 +85,7 @@ export function registerLinkTools(
           isError: true,
         };
       }
-    }
+    },
   );
 
   // 特定の紐付け取得ツール
@@ -131,7 +131,7 @@ export function registerLinkTools(
           isError: true,
         };
       }
-    }
+    },
   );
 
   // 紐付け作成ツール
@@ -189,7 +189,7 @@ export function registerLinkTools(
           isError: true,
         };
       }
-    }
+    },
   );
 
   // 紐付け更新ツール
@@ -202,7 +202,7 @@ export function registerLinkTools(
     async ({ linkId, notes }) => {
       try {
         const linkIndex = taskEventLinks.findIndex(
-          (link) => link.id === linkId
+          (link) => link.id === linkId,
         );
 
         if (linkIndex === -1) {
@@ -247,7 +247,7 @@ export function registerLinkTools(
           isError: true,
         };
       }
-    }
+    },
   );
 
   // 紐付け削除ツール
@@ -259,7 +259,7 @@ export function registerLinkTools(
     async ({ linkId }) => {
       try {
         const linkIndex = taskEventLinks.findIndex(
-          (link) => link.id === linkId
+          (link) => link.id === linkId,
         );
 
         if (linkIndex === -1) {
@@ -303,7 +303,7 @@ export function registerLinkTools(
           isError: true,
         };
       }
-    }
+    },
   );
 
   // タスクに紐付けられたイベント取得ツール
@@ -363,7 +363,7 @@ export function registerLinkTools(
                   timeZone: timeZone || "UTC",
                 },
                 null,
-                2
+                2,
               ),
             },
           ],
@@ -381,7 +381,7 @@ export function registerLinkTools(
           isError: true,
         };
       }
-    }
+    },
   );
 
   // イベントに紐付けられたタスク取得ツール
@@ -438,7 +438,7 @@ export function registerLinkTools(
                   nextPageToken,
                 },
                 null,
-                2
+                2,
               ),
             },
           ],
@@ -456,6 +456,6 @@ export function registerLinkTools(
           isError: true,
         };
       }
-    }
+    },
   );
 }

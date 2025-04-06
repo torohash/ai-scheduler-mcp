@@ -161,7 +161,7 @@ async function authenticate() {
   const oAuth2Client = new google.auth.OAuth2(
     key.client_id,
     key.client_secret,
-    key.redirect_uris[0]
+    key.redirect_uris[0],
   );
 
   // 認証URLを生成
@@ -245,7 +245,7 @@ function defineTools(server, tasksClient, calendarClient) {
           isError: true,
         };
       }
-    }
+    },
   );
 
   // タスク取得ツール
@@ -280,7 +280,7 @@ function defineTools(server, tasksClient, calendarClient) {
           isError: true,
         };
       }
-    }
+    },
   );
 
   // タスク作成ツール
@@ -325,7 +325,7 @@ function defineTools(server, tasksClient, calendarClient) {
           isError: true,
         };
       }
-    }
+    },
   );
 
   // タスク更新ツール
@@ -372,7 +372,7 @@ function defineTools(server, tasksClient, calendarClient) {
           isError: true,
         };
       }
-    }
+    },
   );
 
   // タスク削除ツール
@@ -395,7 +395,7 @@ function defineTools(server, tasksClient, calendarClient) {
               text: JSON.stringify(
                 { success: true, message: "Task deleted successfully" },
                 null,
-                2
+                2,
               ),
             },
           ],
@@ -411,7 +411,7 @@ function defineTools(server, tasksClient, calendarClient) {
           isError: true,
         };
       }
-    }
+    },
   );
 
   // イベント一覧取得ツール
@@ -462,7 +462,7 @@ function defineTools(server, tasksClient, calendarClient) {
           isError: true,
         };
       }
-    }
+    },
   );
 
   // イベント取得ツール
@@ -500,7 +500,7 @@ function defineTools(server, tasksClient, calendarClient) {
           isError: true,
         };
       }
-    }
+    },
   );
 
   // イベント作成ツール
@@ -524,7 +524,7 @@ function defineTools(server, tasksClient, calendarClient) {
           z.object({
             email: z.string(),
             displayName: z.string().optional(),
-          })
+          }),
         )
         .optional(),
       reminders: z
@@ -535,7 +535,7 @@ function defineTools(server, tasksClient, calendarClient) {
               z.object({
                 method: z.string(),
                 minutes: z.number(),
-              })
+              }),
             )
             .optional(),
         })
@@ -590,7 +590,7 @@ function defineTools(server, tasksClient, calendarClient) {
           isError: true,
         };
       }
-    }
+    },
   );
 
   // タスクとイベントの紐付け関連ツール
@@ -650,7 +650,7 @@ function defineTools(server, tasksClient, calendarClient) {
           isError: true,
         };
       }
-    }
+    },
   );
 
   // 紐付け一覧取得ツール
@@ -668,13 +668,13 @@ function defineTools(server, tasksClient, calendarClient) {
 
         if (taskId) {
           filteredLinks = filteredLinks.filter(
-            (link) => link.taskId === taskId
+            (link) => link.taskId === taskId,
           );
         }
 
         if (eventId) {
           filteredLinks = filteredLinks.filter(
-            (link) => link.eventId === eventId
+            (link) => link.eventId === eventId,
           );
         }
 
@@ -698,7 +698,7 @@ function defineTools(server, tasksClient, calendarClient) {
                   nextPageToken,
                 },
                 null,
-                2
+                2,
               ),
             },
           ],
@@ -714,7 +714,7 @@ function defineTools(server, tasksClient, calendarClient) {
           isError: true,
         };
       }
-    }
+    },
   );
 }
 ```
@@ -742,7 +742,7 @@ function defineResources(server, tasksClient, calendarClient) {
             })),
           };
         },
-      }
+      },
     ),
     async (uri, variables) => {
       const { status, dueMin, dueMax, maxResults, pageToken } = variables;
@@ -764,7 +764,7 @@ function defineResources(server, tasksClient, calendarClient) {
           },
         ],
       };
-    }
+    },
   );
 
   // 特定のタスクリソース
@@ -787,7 +787,7 @@ function defineResources(server, tasksClient, calendarClient) {
           },
         ],
       };
-    }
+    },
   );
 
   // イベント一覧リソース
@@ -808,7 +808,7 @@ function defineResources(server, tasksClient, calendarClient) {
             })),
           };
         },
-      }
+      },
     ),
     async (uri, variables) => {
       const {
@@ -837,7 +837,7 @@ function defineResources(server, tasksClient, calendarClient) {
           },
         ],
       };
-    }
+    },
   );
 
   // 特定のイベントリソース
@@ -861,7 +861,7 @@ function defineResources(server, tasksClient, calendarClient) {
           },
         ],
       };
-    }
+    },
   );
 }
 ```

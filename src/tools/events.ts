@@ -15,7 +15,7 @@ import {
  */
 export function registerEventTools(
   server: McpServer,
-  authClient: OAuth2Client
+  authClient: OAuth2Client,
 ): void {
   // Google Calendar APIクライアント初期化
   const calendarClient = google.calendar({ version: "v3", auth: authClient });
@@ -76,7 +76,7 @@ export function registerEventTools(
           isError: true,
         };
       }
-    }
+    },
   );
 
   // イベント取得ツール
@@ -116,7 +116,7 @@ export function registerEventTools(
           isError: true,
         };
       }
-    }
+    },
   );
 
   // イベント作成ツール
@@ -140,7 +140,7 @@ export function registerEventTools(
           z.object({
             email: z.string(),
             displayName: z.string().optional(),
-          })
+          }),
         )
         .optional(),
       reminders: z
@@ -151,7 +151,7 @@ export function registerEventTools(
               z.object({
                 method: z.string(),
                 minutes: z.number(),
-              })
+              }),
             )
             .optional(),
         })
@@ -208,7 +208,7 @@ export function registerEventTools(
           isError: true,
         };
       }
-    }
+    },
   );
 
   // イベント更新ツール
@@ -238,7 +238,7 @@ export function registerEventTools(
           z.object({
             email: z.string(),
             displayName: z.string().optional(),
-          })
+          }),
         )
         .optional(),
       reminders: z
@@ -249,7 +249,7 @@ export function registerEventTools(
               z.object({
                 method: z.string(),
                 minutes: z.number(),
-              })
+              }),
             )
             .optional(),
         })
@@ -307,7 +307,7 @@ export function registerEventTools(
           isError: true,
         };
       }
-    }
+    },
   );
 
   // イベント削除ツール
@@ -350,6 +350,6 @@ export function registerEventTools(
           isError: true,
         };
       }
-    }
+    },
   );
 }

@@ -8,7 +8,7 @@
  * @returns 開始時刻と終了時刻を含むオブジェクト
  */
 export function getTimeRangeFromPreset(
-  preset: "today" | "tomorrow" | "this_week" | "next_week" | "this_month"
+  preset: "today" | "tomorrow" | "this_week" | "next_week" | "this_month",
 ): { start: string; end: string } {
   const now = new Date();
   let start: Date;
@@ -31,25 +31,26 @@ export function getTimeRangeFromPreset(
       end.setMilliseconds(-1);
       break;
 
-    case "this_week":
+    case "this_week": {
       // 今週の月曜日の0時0分0秒（日曜始まりの場合は日曜日）
       const dayOfWeek = now.getDay(); // 0: 日曜, 1: 月曜, ..., 6: 土曜
       const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // 月曜始まりに調整
       start = new Date(
         now.getFullYear(),
         now.getMonth(),
-        now.getDate() - daysSinceMonday
+        now.getDate() - daysSinceMonday,
       );
       // 来週の月曜日の0時0分0秒 - 1ミリ秒
       end = new Date(
         now.getFullYear(),
         now.getMonth(),
-        now.getDate() - daysSinceMonday + 7
+        now.getDate() - daysSinceMonday + 7,
       );
       end.setMilliseconds(-1);
       break;
+    }
 
-    case "next_week":
+    case "next_week": {
       // 来週の月曜日の0時0分0秒
       const nextWeekDayOfWeek = now.getDay(); // 0: 日曜, 1: 月曜, ..., 6: 土曜
       const daysUntilNextMonday =
@@ -57,16 +58,17 @@ export function getTimeRangeFromPreset(
       start = new Date(
         now.getFullYear(),
         now.getMonth(),
-        now.getDate() + daysUntilNextMonday
+        now.getDate() + daysUntilNextMonday,
       );
       // 再来週の月曜日の0時0分0秒 - 1ミリ秒
       end = new Date(
         now.getFullYear(),
         now.getMonth(),
-        now.getDate() + daysUntilNextMonday + 7
+        now.getDate() + daysUntilNextMonday + 7,
       );
       end.setMilliseconds(-1);
       break;
+    }
 
     case "this_month":
       // 今月の1日の0時0分0秒
