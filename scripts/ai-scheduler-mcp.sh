@@ -208,16 +208,7 @@ _start_auth_container() {
   fi
 
   # token.jsonがなければ作成 (マウントエラーを防ぐため)
-  local token_path="${PROJECT_ROOT}/token.json"
-  if [ ! -f "$token_path" ]; then
-      echo "初回認証のため、空の ${token_path} を作成します。"
-      touch "$token_path"
-      if [ $? -ne 0 ]; then
-          echo "エラー: ${token_path} の作成に失敗しました。書き込み権限を確認してください。" >&2
-          return 1
-      fi
-  fi
-
+  local token_path="${PROJECT_ROOT}/token.json" # touch処理を削除
   echo "初回認証用コンテナ '${auth_container_name}' をポート ${port} で起動します (インタラクティブモード)..."
   echo "認証URLが表示されたら、ブラウザでアクセスし、認証コードをコンソールに入力してください。"
 
