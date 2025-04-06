@@ -178,7 +178,6 @@ _start_container() {
 # 初回認証用のコンテナを起動する関数
 _start_auth_container() {
   local port="${DEFAULT_PORT_FROM_ENV}" # デフォルト値を.env.exampleから取得したものに変更
-  local auth_container_name="${CONTAINER_NAME}-auth" # 認証用の一時コンテナ名
 
   # オプション引数をパース (ポートのみ)
   while [[ $# -gt 0 ]]; do
@@ -208,19 +207,30 @@ _start_auth_container() {
   fi
 
   # token.jsonがなければ作成 (マウントエラーを防ぐため)
-  local token_path="${PROJECT_ROOT}/token.json" # touch処理を削除
-  echo "初回認証用コンテナ '${auth_container_name}' をポート ${port} で起動します (インタラクティブモード)..."
+  local token_path="${PROJECT_ROOT}/token.json"
+  if [ ! -f "$token_path" ]; then
+    echo "token.jsonファイルが存在しないため、空のファイルを作成します..."
+    touch "$token_path"
+    # コンテナ内のプロセスが書き込めるように権限を設定
+    chmod 666 "$token_path"
+    echo "token.jsonファイルの権限を設定しました (666)。"
+  fi
+  echo "初回認証用コンテナ '${CONTAINER_NAME}' をポート ${port} で起動します (インタラクティブモード)..."
   echo "認証URLが表示されたら、ブラウザでアクセスし、認証コードをコンソールに入力してください。"
 
-  # 既存の同名認証コンテナがあれば削除
-  if [ "$(docker ps -aq -f name=^/${auth_container_name}$)" ]; then
-      echo "既存の認証用コンテナ '${auth_container_name}' を削除します..."
-      docker rm -f "${auth_container_name}" > /dev/null
+  # 既存の同名コンテナがあれば停止・削除
+  if [ "$(docker ps -q -f name=^/${CONTAINER_NAME}$)" ]; then
+      echo "既存のコンテナ '${CONTAINER_NAME}' を停止・削除します..."
+      docker stop "${CONTAINER_NAME}" > /dev/null
+      docker rm "${CONTAINER_NAME}" > /dev/null
+  elif [ "$(docker ps -aq -f status=exited -f name=^/${CONTAINER_NAME}$)" ]; then
+      echo "既存の停止済みコンテナ '${CONTAINER_NAME}' を削除します..."
+      docker rm "${CONTAINER_NAME}" > /dev/null
   fi
 
   # コンテナをインタラクティブモードで起動
   docker run -it --rm \
-    --name "${auth_container_name}" \
+    --name "${CONTAINER_NAME}" \
     --network "${NETWORK_NAME}" \
     -p "${port}:${port}" \
     -v "${PROJECT_ROOT}/credentials.json:/app/credentials.json:ro" \
