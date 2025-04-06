@@ -3,9 +3,11 @@
 # --- 設定項目 ---
 IMAGE_NAME="ai-scheduler-mcp"
 CONTAINER_NAME="ai-scheduler-mcp-server"
-DEFAULT_PORT="3003" # デフォルトポート
 DEFAULT_RESTART_POLICY="unless-stopped" # デフォルトの再起動ポリシー
 NETWORK_NAME="mcp-network" # 接続するDockerネットワーク
+DEFAULT_PORT_FROM_ENV="3003" # フォールバック値
+DEFAULT_TOKEN_PATH_FROM_ENV="./token.json" # フォールバック値
+DEFAULT_CREDENTIALS_PATH_FROM_ENV="./credentials.json" # フォールバック値
 
 # --- グローバル変数 ---
 # スクリプトの場所を取得
@@ -103,7 +105,7 @@ _build_image() {
 
 # Dockerコンテナを起動する関数
 _start_container() {
-  local port="${DEFAULT_PORT}"
+  local port="${DEFAULT_PORT_FROM_ENV}" # デフォルト値を.env.exampleから取得したものに変更
   local restart_policy="${DEFAULT_RESTART_POLICY}"
 
   # オプション引数をパース
@@ -160,6 +162,8 @@ _start_container() {
     -v "${PROJECT_ROOT}/credentials.json:/app/credentials.json:ro" \
     -v "${PROJECT_ROOT}/token.json:/app/token.json:ro" \
     -e PORT="${port}" \
+    -e TOKEN_PATH="${DEFAULT_TOKEN_PATH_FROM_ENV}" \
+    -e CREDENTIALS_PATH="${DEFAULT_CREDENTIALS_PATH_FROM_ENV}" \
     "${IMAGE_NAME}"
 
   local exit_code=$?
@@ -173,7 +177,7 @@ _start_container() {
 
 # 初回認証用のコンテナを起動する関数
 _start_auth_container() {
-  local port="${DEFAULT_PORT}"
+  local port="${DEFAULT_PORT_FROM_ENV}" # デフォルト値を.env.exampleから取得したものに変更
   local auth_container_name="${CONTAINER_NAME}-auth" # 認証用の一時コンテナ名
 
   # オプション引数をパース (ポートのみ)
@@ -231,6 +235,8 @@ _start_auth_container() {
     -v "${PROJECT_ROOT}/credentials.json:/app/credentials.json:ro" \
     -v "${PROJECT_ROOT}/token.json:/app/token.json" \
     -e PORT="${port}" \
+    -e TOKEN_PATH="${DEFAULT_TOKEN_PATH_FROM_ENV}" \
+    -e CREDENTIALS_PATH="${DEFAULT_CREDENTIALS_PATH_FROM_ENV}" \
     "${IMAGE_NAME}"
 
   local exit_code=$?
