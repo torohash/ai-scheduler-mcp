@@ -19,6 +19,7 @@ export function registerEventSmartTools(
   // スマートクエリ機能
   server.tool(
     "smartEventQuery",
+    "自然言語クエリに基づいてGoogle Calendarイベントを検索します。（簡易実装）",
     {
       query: z.string(), // 例: "今週の会議", "プロジェクトXに関連するイベント"
       timeZone: z.string().optional(),
@@ -158,6 +159,7 @@ export function registerEventSmartTools(
   // 空き時間検出ツール
   server.tool(
     "findFreeTimeSlots",
+    "指定された期間とカレンダー内で、指定された最小時間以上の空き時間スロットを検索します。",
     {
       startDate: z.string(), // 検索開始日時（RFC 3339形式）
       endDate: z.string(), // 検索終了日時（RFC 3339形式）

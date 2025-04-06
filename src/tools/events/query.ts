@@ -20,6 +20,7 @@ export function registerEventQueryTools(
   // イベント一覧取得ツール
   server.tool(
     "listEvents",
+    "指定された期間のGoogle Calendarイベント一覧を取得します。",
     {
       timeMin: z.string().optional(),
       timeMax: z.string().optional(),
@@ -79,6 +80,7 @@ export function registerEventQueryTools(
   // 時間範囲プリセットを使用したイベント一覧取得ツール
   server.tool(
     "listEventsInTimeRange",
+    "プリセットまたは指定された期間のGoogle Calendarイベント一覧を取得します。",
     {
       timeRange: z.union([
         z.object({
@@ -96,7 +98,7 @@ export function registerEventQueryTools(
         }),
       ]),
       calendarId: z.string().optional().default("primary"),
-      includeLinkedTasks: z.boolean().optional().default(false),
+      includeLinkedTasks: z.boolean().optional().default(false), // このパラメータは現在使用されていません
       maxResults: z.number().optional(),
       pageToken: z.string().optional(),
       timeZone: z.string().optional(),
@@ -168,9 +170,10 @@ export function registerEventQueryTools(
   // タグでイベントを検索するツール
   server.tool(
     "listEventsByTags",
+    "指定されたタグを含むGoogle Calendarイベント一覧を取得します。",
     {
       tags: z.array(z.string()),
-      matchAll: z.boolean().optional().default(false),
+      matchAll: z.boolean().optional().default(false), // trueの場合、すべてのタグに一致するイベントのみを返します
       timeMin: z.string().optional(),
       timeMax: z.string().optional(),
       calendarId: z.string().optional().default("primary"),

@@ -19,6 +19,7 @@ export function registerEventBulkTools(
   // 複数イベントの一括更新ツール
   server.tool(
     "bulkUpdateEvents",
+    "複数のGoogle Calendarイベントを一括で更新します。時間シフトや共通のプロパティ変更が可能です。",
     {
       eventIds: z.array(z.string()),
       updates: z.object({
@@ -142,6 +143,7 @@ export function registerEventBulkTools(
   // イベント更新時に関連タスクも連動して更新するツール
   server.tool(
     "updateEventWithLinkedTasks",
+    "Google Calendarイベントを更新し、オプションで関連するGoogle Tasksも連動して更新します。（タスク連携は現在実装中）",
     {
       eventId: z.string(),
       updates: z.object({

@@ -19,6 +19,7 @@ export function registerQueryLinkTools(
   // 紐付け一覧取得ツール
   server.tool(
     "listTaskEventLinks",
+    "Google TasksとGoogle Calendarイベント間の紐付け（リンク）を取得します。タスクIDまたはイベントIDでフィルタリングできます。（データは一時ストア）",
     {
       taskId: z.string().optional(),
       eventId: z.string().optional(),

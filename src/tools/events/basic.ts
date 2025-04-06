@@ -20,6 +20,7 @@ export function registerBasicEventTools(
   // イベント取得ツール
   server.tool(
     "getEvent",
+    "指定されたIDのGoogle Calendarイベントを取得します。",
     {
       eventId: z.string(),
       calendarId: z.string().optional().default("primary"),
@@ -60,6 +61,7 @@ export function registerBasicEventTools(
   // イベント作成ツール
   server.tool(
     "createEvent",
+    "新しいGoogle Calendarイベントを作成します。",
     {
       summary: z.string(),
       description: z.string().optional(),
@@ -152,6 +154,7 @@ export function registerBasicEventTools(
   // イベント更新ツール
   server.tool(
     "updateEvent",
+    "既存のGoogle Calendarイベントを更新します。",
     {
       eventId: z.string(),
       calendarId: z.string().optional().default("primary"),
@@ -251,6 +254,7 @@ export function registerBasicEventTools(
   // イベント削除ツール
   server.tool(
     "deleteEvent",
+    "指定されたIDのGoogle Calendarイベントを削除します。",
     {
       eventId: z.string(),
       calendarId: z.string().optional().default("primary"),

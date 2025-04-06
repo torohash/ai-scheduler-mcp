@@ -18,7 +18,9 @@ export function registerQueryTaskTools(
   // タスク一覧取得ツール
   server.tool(
     "listTasks",
+    "Google Tasks のタスクリストを取得します。ステータスや期限でフィルタリングできます。", // description を文字列として渡す
     {
+      // inputSchema をオブジェクトリテラルとして直接渡す
       status: z.enum(["needsAction", "completed"]).optional(),
       dueMin: z.string().optional(),
       dueMax: z.string().optional(),
@@ -26,6 +28,7 @@ export function registerQueryTaskTools(
       pageToken: z.string().optional(),
     },
     async ({ status, dueMin, dueMax, maxResults, pageToken }) => {
+      // コールバック関数の引数は inputSchema から推論される
       try {
         const params: tasks_v1.Params$Resource$Tasks$List = {
           tasklist: "@default",
