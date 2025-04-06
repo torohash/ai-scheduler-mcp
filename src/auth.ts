@@ -5,7 +5,6 @@ import { google } from "googleapis";
 import { OAuth2Client } from "google-auth-library";
 import readline from "readline";
 
-// ESモジュール対応のための__dirnameの代替
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -14,8 +13,11 @@ const SCOPES = [
   "https://www.googleapis.com/auth/tasks",
   "https://www.googleapis.com/auth/calendar",
 ];
-const TOKEN_PATH = path.join(process.cwd(), "token.json");
-const CREDENTIALS_PATH = path.join(process.cwd(), "credentials.json");
+// 環境変数からパスを取得、未設定の場合はデフォルト値を使用
+const TOKEN_PATH =
+  process.env.TOKEN_PATH || path.join(process.cwd(), "token.json");
+const CREDENTIALS_PATH =
+  process.env.CREDENTIALS_PATH || path.join(process.cwd(), "credentials.json");
 
 /**
  * 認証クライアントを初期化する

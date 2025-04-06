@@ -46,7 +46,48 @@ npm install --save-dev typescript ts-node ts-node-dev @types/node @types/express
 3. OAuth 2.0 クライアント ID を作成し、認証情報をダウンロードします。
 4. ダウンロードした JSON ファイルを`credentials.json`という名前でプロジェクトのルートディレクトリに配置します。
 
-### 3. サーバーの起動
+### 3. 環境変数の設定
+
+このプロジェクトでは、環境変数を使用して設定を行うことができます。開発環境では`.env`ファイルを使用し、本番環境では Docker の環境変数機能を利用します。
+
+1. プロジェクトルートディレクトリにある`.env.example`ファイルを`.env`にコピーします：
+
+```bash
+cp .env.example .env
+```
+
+2. 必要に応じて`.env`ファイルの内容を編集します：
+
+```
+# サーバー設定
+PORT=3003
+
+# Google API認証設定
+TOKEN_PATH=./token.json
+CREDENTIALS_PATH=./credentials.json
+```
+
+3. Docker 環境での実行時は、以下のように環境変数を設定します：
+
+```bash
+docker run -e PORT=3003 -e TOKEN_PATH=/app/data/token.json -e CREDENTIALS_PATH=/app/data/credentials.json your-image-name
+```
+
+または、docker-compose.yml ファイルを使用する場合：
+
+```yaml
+services:
+  app:
+    image: your-image-name
+    environment:
+      - PORT=3003
+      - TOKEN_PATH=/app/data/token.json
+      - CREDENTIALS_PATH=/app/data/credentials.json
+    volumes:
+      - ./data:/app/data
+```
+
+### 4. サーバーの起動
 
 ```bash
 # 開発モードで起動
