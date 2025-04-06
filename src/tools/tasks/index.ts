@@ -1,8 +1,8 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { OAuth2Client } from "google-auth-library";
-// import { registerBasicTaskTools } from "./basic.js"; // Future: Import basic tools
+import { registerBasicTaskTools } from "./basic.js";
 import { registerQueryTaskTools } from "./query.js";
-// import { registerBulkTaskTools } from "./bulk.js"; // Future: Import bulk tools
+import { registerBulkTaskTools } from "./bulk.js";
 // import { registerSmartTaskTools } from "./smart.js"; // Future: Import smart tools
 
 /**
@@ -15,8 +15,8 @@ export function registerTaskTools(
   authClient: OAuth2Client,
 ): void {
   // Register different categories of task tools
-  // registerBasicTaskTools(server, authClient); // Future: Basic CRUD operations
+  registerBasicTaskTools(server, authClient); // Basic CRUD operations
   registerQueryTaskTools(server, authClient); // Query and listing operations
-  // registerBulkTaskTools(server, authClient); // Future: Bulk operations
+  registerBulkTaskTools(server, authClient); // Bulk operations
   // registerSmartTaskTools(server, authClient); // Future: AI-powered or complex tools
 }
