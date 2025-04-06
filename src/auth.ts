@@ -54,6 +54,13 @@ async function loadSavedCredentialsIfExist(): Promise<OAuth2Client | null> {
     return google.auth.fromJSON(credentials) as OAuth2Client;
   } catch (err) {
     console.error("Error loading saved credentials:", err);
+    // token.jsonが存在するが不完全な場合は削除を提案
+    if (fs.existsSync(TOKEN_PATH)) {
+      console.log(
+        "token.jsonファイルが不完全です。削除して再認証してください。"
+      );
+      console.log(`削除コマンド: rm ${TOKEN_PATH}`);
+    }
     return null;
   }
 }
@@ -108,13 +115,32 @@ async function authenticate(): Promise<OAuth2Client> {
     // 認証URLを生成
     const authUrl = oAuth2Client.generateAuthUrl({
       access_type: "offline",
+      prompt: "consent", // 常に同意画面を表示し、refresh_tokenを確実に取得
       scope: SCOPES,
     });
     console.log("Authorize this app by visiting this url:", authUrl);
+    console.log("After authorization, you will be redirected to a page.");
+    console.log(
+      "Copy the authorization code from the URL (after '?code=' and before '&' if present)"
+    );
 
     // ユーザーに認証コードを入力してもらう
     const code = await getAuthorizationCode();
-    const { tokens } = await oAuth2Client.getToken(code);
+    const { tokens } = await oAuth2Client.getToken({
+      code: code,
+      redirect_uri: key.redirect_uris[0], // 明示的にredirect_uriを指定
+    });
+
+    // トークン情報のデバッグログ
+    console.log(
+      "取得したトークン情報:",
+      JSON.stringify({
+        access_token: tokens.access_token ? "取得済み" : "未取得",
+        refresh_token: tokens.refresh_token ? "取得済み" : "未取得",
+        expiry_date: tokens.expiry_date,
+      })
+    );
+
     oAuth2Client.setCredentials(tokens);
 
     return oAuth2Client;
@@ -139,7 +165,11 @@ function getAuthorizationCode(): Promise<string> {
       "Enter the authorization code from that page here: ",
       (code) => {
         rl.close();
-        resolve(code);
+        // URLデコードを行い、余分な空白を削除
+        const decodedCode = decodeURIComponent(code.trim());
+        console.log("認証コードを処理しました");
+        console.log("認証コードの長さ:", decodedCode.length);
+        resolve(decodedCode);
       }
     );
   });
